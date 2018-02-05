@@ -6,7 +6,7 @@
     "use strict";
 
     const cell_size = 6;
-    const genocode_length = 64;
+    const genocode_length = 32;
     const bot_count = 500;
 
     function rand(max) {
