@@ -13,11 +13,11 @@
         return Math.floor(Math.random() * max);
     }
 
-    function norm(a, min, max) {
-        if (a < min)
-            return a + (max - min);
+    function norm(a, max) {
+        if (a < 0)
+            return a + max;
         else if (a >= max)
-            return a - (max - min);
+            return a - max;
         else
             return a;
     }
@@ -47,7 +47,7 @@
             do {
                 p.x = rand(this.field.width);
                 p.y = rand(this.field.height);
-            } while (this.field.cells[p.y][p.x] !== "ground");
+            } while (this.field.cells[p.y][p.x] === "water");
 
             var c = [];
             var i;
@@ -56,7 +56,7 @@
                     c.push(genocode[i][rand(genocode[i].length)]);
                 }
                 for (i = 0; i < c.length / 4; i++) {
-                    c[rand(c.length)] += norm(Math.random() > 0.5 ? 1 : -1, 0, 16);
+                    c[rand(c.length)] += norm(Math.random() > 0.5 ? 1 : -1, 16);
                 }
             } else {
                 for (i = 0; i < 32; i++) {
@@ -66,48 +66,41 @@
 
             return {
                 position: p,
-                health: 100 + rand(100),
-                code: {
-                    bytes: [],
-                    ip: 0
-                },
+                health: 50,
+                code: c,
                 run: function(field) {
                     this.health--;
                     if (this.health <= 0) {
                         return false;
                     }
-                    switch (this.code.bytes[this.code.ip]) {
-                        case 0:
-                            this.position.y = norm(this.position.y - 1, 0, field.height);
-                            this.code.ip++;
+                    var ip = 0;
+                    for (var i = 0; i < 100; i++) {
+                        var c = this.code[ip];
+                        switch (c) {
+                            case 0:
+                                this.position.y = norm(this.position.y - 1, field.height); break;
+                            case 1:
+                                this.position.x = norm(this.position.x + 1, field.width); break;
+                            case 2:
+                                this.position.y = norm(this.position.y + 1, field.height); break;
+                            case 3:
+                                this.position.x = norm(this.position.x - 1, field.width); break;
+                            case 4:
+                                ip = norm(ip + jump(field.cells[norm(this.position.y - 1, field.height)][this.position.x]), this.code.length); break;
+                            case 5:
+                                ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x + 1, field.width)]), this.code.length); break;
+                            case 6:
+                                ip = norm(ip + jump(field.cells[norm(this.position.y + 1, field.height)][this.position.x]), this.code.length); break;
+                            case 7:
+                                ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x - 1, field.width)]), this.code.length); break;
+                            default:
+                                this.code.ip = norm(this.code.ip + this.code[this.code.ip], this.code.length);
+                        }
+                        if (c < 4) {
                             break;
-                        case 1:
-                            this.position.x = norm(this.position.x + 1, 0, field.width);
-                            this.code.ip++;
-                            break;
-                        case 2:
-                            this.position.y = norm(this.position.y + 1, 0, field.height);
-                            this.code.ip++;
-                            break;
-                        case 3:
-                            this.position.x = norm(this.position.x - 1, 0, field.width);
-                            this.code.ip++;
-                            break;
-                        case 4:
-                            this.code.ip += jump(field.cells[this.position.y - 1][this.position.x]);
-                            break;
-                        case 5:
-                            this.code.ip += jump(field.cells[this.position.y][this.position.x + 1]);
-                            break;
-                        case 6:
-                            this.code.ip += jump(field.cells[this.position.y + 1][this.position.x]);
-                            break;
-                        case 7:
-                            this.code.ip += jump(field.cells[this.position.y][this.position.x - 1]);
-                            break;
-                        default:
-                            this.code.ip += norm(this.code.bytes[this.code.ip], 0, this.code.bytes.length);
+                        }
                     }
+
                     switch (field.cells[this.position.y][this.position.x]) {
                         case "water":
                             return false;
@@ -125,7 +118,7 @@
             for (var i = 0; i < genocode_length; i++) {
                 genocode[i] = [];
                 for (var b = 0; b < this.bots.length; b++) {
-                    genocode[i].push(this.bots[b].code.bytes[i]);
+                    genocode[i].push(this.bots[b].code[i]);
                 }
             }
             return genocode;
@@ -185,7 +178,7 @@
                     var p = Math.random();
                     if (p < 0.1)
                         this.field.cells[y].push('water');
-                    else if (p < 0.4)
+                    else if (p < 0.2)
                         this.field.cells[y].push('grass');
                     else
                         this.field.cells[y].push('ground')
@@ -202,6 +195,9 @@
         step: function() {
             for (var i = 0; i < this.bots.length; i++) {
                 if (!this.bots[i].run(this.field)) {
+                    if (this.field.cells[this.bots[i].position.y][this.bots[i].position.x] === "ground") {
+                        this.field.cells[this.bots[i].position.y][this.bots[i].position.x] = "grass"
+                    }
                     this.bots.splice(i, 1);
                 }
                 if (this.bots.length <= 8) {
