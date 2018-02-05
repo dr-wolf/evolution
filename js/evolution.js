@@ -24,8 +24,8 @@
 
     window.evolution = {
         field: {
-            width: 64,
-            height: 64,
+            width: 128,
+            height: 128,
             cells: []
         },
 
@@ -175,13 +175,17 @@
             for (var y = 0; y < this.field.height; y++) {
                 this.field.cells.push([]);
                 for (var x = 0; x < this.field.width; x++) {
-                    var p = Math.random();
-                    if (p < 0.1)
+                    if (Math.sqrt((x - 64)*(x - 64) + (y - 64)*(y - 64)) > 63) {
                         this.field.cells[y].push('water');
-                    else if (p < 0.2)
-                        this.field.cells[y].push('grass');
-                    else
-                        this.field.cells[y].push('ground')
+                    } else {
+                        var p = Math.random();
+                        if (p < 0.1)
+                            this.field.cells[y].push('water');
+                        else if (p < 0.2)
+                            this.field.cells[y].push('grass');
+                        else
+                            this.field.cells[y].push('ground');
+                    }
                 }
             }
 
