@@ -6,7 +6,7 @@
     "use strict";
 
     const cell_size = 6;
-    const genocode_length = 32;
+    const code_length = 32;
     const bot_count = 500;
 
     function rand(max) {
@@ -55,48 +55,63 @@
                 for (i = 0; i < genocode.length; i++) {
                     c.push(genocode[i][rand(genocode[i].length)]);
                 }
-                for (i = 0; i < c.length / 4; i++) {
-                    c[rand(c.length)] += norm(Math.random() > 0.5 ? 1 : -1, 16);
+                for (i = 0; i < c.length / 8; i++) {
+                    c[rand(c.length)] += rand(code_length + 8) - 8;
                 }
             } else {
-                for (i = 0; i < genocode_length; i++) {
-                    c.push(rand(genocode_length));
+                for (i = 0; i < code_length; i++) {
+                    c.push(rand(code_length + 8) - 8);
                 }
             }
 
             return {
                 position: p,
                 health: 50,
-                code: c,
+                code: c, //[-5, 4, 0, 0, -1, -6, 4, 0, 0, -2, -7, 4, 0, 0, -3, -8, 4, 0, 0, -4,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 run: function(field) {
                     this.health--;
                     if (this.health <= 0) {
                         return false;
                     }
                     var ip = 0;
-                    for (var i = 0; i < 100; i++) {
+                    for (var i = 0; i < 1000; i++) {
                         var c = this.code[ip];
                         switch (c) {
                             case 0:
-                                this.position.y = norm(this.position.y - 1, field.height); break;
-                            case 1:
-                                this.position.x = norm(this.position.x + 1, field.width); break;
-                            case 2:
-                                this.position.y = norm(this.position.y + 1, field.height); break;
-                            case 3:
-                                this.position.x = norm(this.position.x - 1, field.width); break;
-                            case 4:
-                                ip = norm(ip + jump(field.cells[norm(this.position.y - 1, field.height)][this.position.x]), this.code.length); break;
-                            case 5:
-                                ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x + 1, field.width)]), this.code.length); break;
-                            case 6:
-                                ip = norm(ip + jump(field.cells[norm(this.position.y + 1, field.height)][this.position.x]), this.code.length); break;
-                            case 7:
-                                ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x - 1, field.width)]), this.code.length); break;
+                                ip = norm(ip + 1, code_length);
+                                break;
+                            case -1:
+                                this.position.y = norm(this.position.y - 1, field.height);
+                                ip = norm(ip + 1, code_length);
+                                break;
+                            case -2:
+                                this.position.x = norm(this.position.x + 1, field.width);
+                                ip = norm(ip + 1, code_length);
+                                break;
+                            case -3:
+                                this.position.y = norm(this.position.y + 1, field.height);
+                                ip = norm(ip + 1, code_length);
+                                break;
+                            case -4:
+                                this.position.x = norm(this.position.x - 1, field.width);
+                                ip = norm(ip + 1, code_length);
+                                break;
+                            case -5:
+                                ip = norm(ip + jump(field.cells[norm(this.position.y - 1, field.height)][this.position.x]), this.code.length);
+                                break;
+                            case -6:
+                                ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x + 1, field.width)]), this.code.length);
+                                break;
+                            case -7:
+                                ip = norm(ip + jump(field.cells[norm(this.position.y + 1, field.height)][this.position.x]), this.code.length);
+                                break;
+                            case -8:
+                                ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x - 1, field.width)]), this.code.length);
+                                break;
                             default:
-                                this.code.ip = norm(this.code.ip + this.code[this.code.ip], genocode_length);
+                                ip = norm(ip + c, code_length);
                         }
-                        if (c < 4) {
+                        if (c >= -4 && c < 0) {
                             break;
                         }
                     }
@@ -115,7 +130,7 @@
 
         makeGenocode: function() {
             var genocode = [];
-            for (var i = 0; i < genocode_length; i++) {
+            for (var i = 0; i < code_length; i++) {
                 genocode[i] = [];
                 for (var b = 0; b < this.bots.length; b++) {
                     genocode[i].push(this.bots[b].code[i]);
