@@ -59,8 +59,8 @@
                     c[rand(c.length)] += norm(Math.random() > 0.5 ? 1 : -1, 16);
                 }
             } else {
-                for (i = 0; i < 32; i++) {
-                    c.push(rand(16));
+                for (i = 0; i < genocode_length; i++) {
+                    c.push(rand(genocode_length));
                 }
             }
 
@@ -94,7 +94,7 @@
                             case 7:
                                 ip = norm(ip + jump(field.cells[this.position.y][norm(this.position.x - 1, field.width)]), this.code.length); break;
                             default:
-                                this.code.ip = norm(this.code.ip + this.code[this.code.ip], this.code.length);
+                                this.code.ip = norm(this.code.ip + this.code[this.code.ip], genocode_length);
                         }
                         if (c < 4) {
                             break;
