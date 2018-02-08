@@ -22,6 +22,8 @@
             return a;
     }
 
+    var generation = 0;
+
     window.evolution = {
         field: {
             width: 128,
@@ -67,8 +69,10 @@
             return {
                 position: p,
                 health: 50,
+                age: 0,
                 code: c, //[-5, 4, 0, 0, -1, -6, 4, 0, 0, -2, -7, 4, 0, 0, -3, -8, 4, 0, 0, -4,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 run: function(field) {
+                    this.age++;
                     this.health--;
                     if (this.health <= 0) {
                         return false;
@@ -220,13 +224,32 @@
                     this.bots.splice(i, 1);
                 }
                 if (this.bots.length <= 8) {
+                    generation++;
                     var gc = this.makeGenocode();
                     while (this.bots.length < bot_count) {
                         this.bots.push(this.makeBot(gc));
                     }
                 }
             }
+        },
+
+        statistic: function() {
+            function maxAge(bots) {
+                var age = 0;
+                for (var i = 0; i < bots.length; i++) {
+                    if (bots[i].age > age) {
+                        age = bots[i].age;
+                    }
+                }
+                return age;
+            }
+
+            return {
+                generation: generation,
+                maxage: maxAge(this.bots)
+            }
         }
+
     };
 
 
