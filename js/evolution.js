@@ -23,6 +23,7 @@
     }
 
     var generation = 0;
+    var maxage = 0;
 
     window.evolution = {
         field: {
@@ -194,17 +195,13 @@
             for (var y = 0; y < this.field.height; y++) {
                 this.field.cells.push([]);
                 for (var x = 0; x < this.field.width; x++) {
-                    if (Math.sqrt((x - 64)*(x - 64) + (y - 64)*(y - 64)) > 63) {
+                    var p = Math.random();
+                    if (p < 0.1)
                         this.field.cells[y].push('water');
-                    } else {
-                        var p = Math.random();
-                        if (p < 0.1)
-                            this.field.cells[y].push('water');
-                        else if (p < 0.2)
-                            this.field.cells[y].push('grass');
-                        else
-                            this.field.cells[y].push('ground');
-                    }
+                    else if (p < 0.2)
+                        this.field.cells[y].push('grass');
+                    else
+                        this.field.cells[y].push('ground');
                 }
             }
 
@@ -216,24 +213,6 @@
         },
 
         step: function() {
-            for (var i = 0; i < this.bots.length; i++) {
-                if (!this.bots[i].run(this.field)) {
-                    if (this.field.cells[this.bots[i].position.y][this.bots[i].position.x] === "ground") {
-                        this.field.cells[this.bots[i].position.y][this.bots[i].position.x] = "grass"
-                    }
-                    this.bots.splice(i, 1);
-                }
-                if (this.bots.length <= 8) {
-                    generation++;
-                    var gc = this.makeGenocode();
-                    while (this.bots.length < bot_count) {
-                        this.bots.push(this.makeBot(gc));
-                    }
-                }
-            }
-        },
-
-        statistic: function() {
             function maxAge(bots) {
                 var age = 0;
                 for (var i = 0; i < bots.length; i++) {
@@ -244,9 +223,28 @@
                 return age;
             }
 
+            for (var i = 0; i < this.bots.length; i++) {
+                if (!this.bots[i].run(this.field)) {
+                    if (this.field.cells[this.bots[i].position.y][this.bots[i].position.x] === "ground") {
+                        this.field.cells[this.bots[i].position.y][this.bots[i].position.x] = "grass"
+                    }
+                    this.bots.splice(i, 1);
+                }
+                if (this.bots.length <= 8) {
+                    generation++;
+                    maxage = maxAge(this.bots);
+                    var gc = this.makeGenocode();
+                    while (this.bots.length < bot_count) {
+                        this.bots.push(this.makeBot(gc));
+                    }
+                }
+            }
+        },
+
+        statistic: function() {
             return {
                 generation: generation,
-                maxage: maxAge(this.bots)
+                maxage: maxage
             }
         }
 
